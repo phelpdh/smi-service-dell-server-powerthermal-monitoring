@@ -16,8 +16,9 @@ import com.dell.isg.aps.powerthermal.common.HwMonitoringAgg;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalAggRequest;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalRequest;
 import com.dell.isg.aps.powerthermal.infrastructure.IPowerThermalInfrastructure;
-import com.dell.isg.aps.commons.model.server.JobStatus;
-import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
+import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
+import com.dell.isg.smi.commons.model.server.JobStatus;
+import com.dell.isg.smi.commons.model.server.inventory.HwPowerMonitoring;
 
 /**
  * @author rahman.muhammad
@@ -32,9 +33,9 @@ public class PowerThermalServiceImpl implements IPowerThermalService {
 
 
     @Override
-    public HwPowerMonitoring collectPowerMonitoring(String address, String userName, String password) throws Exception {
+    public Object collectPowerMonitoring(WsmanCredentials wsmanCredentials) throws Exception {
 
-        return powerThermalInfrastructure.collectPowerMonitoring(address, userName, password);
+        return powerThermalInfrastructure.collectPowerMonitoring(wsmanCredentials);
     }
 
 

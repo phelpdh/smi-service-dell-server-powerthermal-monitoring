@@ -13,14 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.dell.isg.aps.powerthermal.common.BasePowerThermalRequest;
 import com.dell.isg.aps.powerthermal.common.HwMonitoringAgg;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalAggRequest;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalRequest;
 import com.dell.isg.aps.powerthermal.common.UriConstants;
 import com.dell.isg.aps.powerthermal.controller.model.Version;
-import com.dell.isg.aps.commons.model.server.JobStatus;
-import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
+import com.dell.isg.smi.commons.model.server.JobStatus;
+import com.dell.isg.smi.commons.model.server.inventory.HwPowerMonitoring;
 
 import io.swagger.annotations.ApiOperation;
 
@@ -37,9 +38,9 @@ public interface IPowerThermalController {
     public Version version();
 
 
-    @ApiOperation(value = UriConstants.POWER_THERMAL, nickname = "PowerThermal", notes = "This Webmethod returns Power and Thermal data for a server system", response = HwPowerMonitoring.class)
+    @ApiOperation(value = UriConstants.POWER_THERMAL, nickname = "PowerThermal", notes = "This Webmethod returns Power and Thermal data for a server system")
     @RequestMapping(value = UriConstants.POWER_THERMAL, method = RequestMethod.POST, produces = "application/json")
-    public HwPowerMonitoring getThermalPower(@RequestBody BasePowerThermalRequest request);
+    public Object getThermalPower(@RequestBody BasePowerThermalRequest request);
 
 
     @ApiOperation(value = UriConstants.POWER_THERMAL, nickname = "PowerThermalCap", notes = "This Webmethod configure physical server for power consumption, by setting power value," + " server consume power within defined limits", response = JobStatus.class)

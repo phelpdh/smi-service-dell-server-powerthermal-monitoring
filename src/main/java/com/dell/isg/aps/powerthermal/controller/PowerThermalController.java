@@ -8,11 +8,13 @@ package com.dell.isg.aps.powerthermal.controller;
 
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.dell.isg.aps.powerthermal.common.BasePowerThermalRequest;
 import com.dell.isg.aps.powerthermal.common.HwMonitoringAgg;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalAggRequest;
@@ -20,10 +22,11 @@ import com.dell.isg.aps.powerthermal.common.SetPowerThermalRequest;
 import com.dell.isg.aps.powerthermal.controller.exception.BadArgumentException;
 import com.dell.isg.aps.powerthermal.controller.model.Version;
 import com.dell.isg.aps.powerthermal.service.IPowerThermalService;
-import com.dell.isg.aps.commons.elm.exception.RuntimeCoreException;
-import com.dell.isg.aps.commons.elm.model.EnumErrorCode;
-import com.dell.isg.aps.commons.model.server.JobStatus;
-import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
+import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
+import com.dell.isg.smi.commons.elm.exception.RuntimeCoreException;
+import com.dell.isg.smi.commons.elm.model.EnumErrorCode;
+import com.dell.isg.smi.commons.model.server.JobStatus;
+import com.dell.isg.smi.commons.model.server.inventory.HwPowerMonitoring;
 
 @RestController
 
@@ -46,7 +49,7 @@ public class PowerThermalController implements IPowerThermalController {
 
 	@SuppressWarnings("unused")
 	@Override
-	public HwPowerMonitoring getThermalPower(@RequestBody BasePowerThermalRequest request) {
+	public Object getThermalPower(@RequestBody BasePowerThermalRequest request) {
 
 		logger.info("requesting power and thermal consumption data for selected {}", request.getServerAddress());
 
@@ -57,7 +60,8 @@ public class PowerThermalController implements IPowerThermalController {
 		}
 
 		try {
-			return powerThermalService.collectPowerMonitoring(request.getServerAddress(), request.getUserName(), request.getPassword());
+			WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerAddress(), request.getUserName(), request.getPassword());
+			return powerThermalService.collectPowerMonitoring(wsmanCredentials);
 		} catch (Exception exp) {
 			logger.error(exp.toString());
 			RuntimeCoreException runExp = new RuntimeCoreException(exp);

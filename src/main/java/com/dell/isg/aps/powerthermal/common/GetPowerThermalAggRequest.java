@@ -1,8 +1,5 @@
 package com.dell.isg.aps.powerthermal.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class GetPowerThermalAggRequest {
 
 /*protected List<BasePowerThermalRequest> servers=null;

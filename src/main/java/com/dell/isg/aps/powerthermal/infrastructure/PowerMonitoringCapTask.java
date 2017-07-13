@@ -6,13 +6,15 @@ package com.dell.isg.aps.powerthermal.infrastructure;
 
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.dell.isg.aps.adapter.server.model.WsmanCredentials;
-import com.dell.isg.aps.adapter.server.powerthermal.IPowerThermalAdapter;
-import com.dell.isg.aps.commons.model.server.JobStatus;
+
 import com.dell.isg.aps.powerthermal.common.EnumDefinition;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalRequest;
+import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
+import com.dell.isg.smi.adapter.server.powerthermal.IPowerThermalAdapter;
+import com.dell.isg.smi.commons.model.server.JobStatus;
 
 /**
  * @author rahman.muhammad
@@ -52,20 +54,16 @@ public class PowerMonitoringCapTask implements Runnable {
 		
 		JobStatus status = null;
 		
-		WsmanCredentials credentials = new WsmanCredentials();
-		credentials.setAddress(request.getServerAddress());
-		credentials.setUserName(request.getUserName());
-		credentials.setPassword(request.getPassword());
-		
+		 WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerAddress(), request.getUserName(), request.getPassword());
 		String powerSettings = request.isEnableCapping() ? EnumDefinition.ENABLED.toString() : EnumDefinition.DISABLED.toString();
 		
-		adapter.enablePowerCapping(credentials, powerSettings);
+		adapter.enablePowerCapping(wsmanCredentials, powerSettings);
 
 		if (request.getPowerCap() > 0) {
-			adapter.setPowerCapping(credentials, String.valueOf(request.getPowerCap()));
+			adapter.setPowerCapping(wsmanCredentials, String.valueOf(request.getPowerCap()));
 		}
 
-		status = adapter.createConfigJob(credentials);
+		status = adapter.createConfigJob(wsmanCredentials);
 		status.setServerAddress(request.getServerAddress());
 		status.setDescription("Configure Power and Thermal consumption job");
 		jobs.add(status);

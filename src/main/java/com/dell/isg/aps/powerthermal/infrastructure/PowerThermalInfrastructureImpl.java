@@ -12,9 +12,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.dell.isg.aps.powerthermal.common.BasePowerThermalRequest;
@@ -24,13 +24,12 @@ import com.dell.isg.aps.powerthermal.common.HwMonitoringAgg;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalAggRequest;
 import com.dell.isg.aps.powerthermal.common.SetPowerThermalRequest;
 import com.dell.isg.aps.powerthermal.util.ExtractValueUtil;
-import com.dell.isg.aps.powerthermal.util.PowerThermalTransformer;
-import com.dell.isg.aps.adapter.server.model.PowerMonitoring;
-import com.dell.isg.aps.adapter.server.model.WsmanCredentials;
-import com.dell.isg.aps.adapter.server.powerthermal.IPowerThermalAdapter;
-import com.dell.isg.aps.adapter.server.powerthermal.PowerThermalAdapterImpl;
-import com.dell.isg.aps.commons.model.server.JobStatus;
-import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
+import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
+import com.dell.isg.smi.adapter.server.powerthermal.IPowerThermalAdapter;
+import com.dell.isg.smi.adapter.server.powerthermal.PowerThermalAdapterImpl;
+import com.dell.isg.smi.commons.model.server.JobStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 /**
  * @author rahman.muhammad
@@ -41,23 +40,19 @@ import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
 public class PowerThermalInfrastructureImpl implements IPowerThermalInfrastructure {
 	private final static int THREAD_POOL_SIZE=10;
 	private static final Logger logger = LoggerFactory.getLogger(PowerThermalInfrastructureImpl.class.getName());
+	
+    @Autowired
+    IPowerThermalAdapter powerThermalAdapterImpl;
 
 	@Override
-	public HwPowerMonitoring collectPowerMonitoring(String address, String userName, String password) throws Exception {
-
-		HwPowerMonitoring hwMonitoring = new HwPowerMonitoring();
-		IPowerThermalAdapter adapter = new PowerThermalAdapterImpl();
-		PowerMonitoring pwMonitoring = adapter.collectPowerMonitoring(address, userName, password);
-		hwMonitoring = PowerThermalTransformer.transformPowerMonitor(pwMonitoring);
-		return hwMonitoring;
-
+	public Object collectPowerMonitoring(WsmanCredentials wsmanCredentials) throws Exception {
+		Object pwMonitoring = powerThermalAdapterImpl.collectPowerMonitoring(wsmanCredentials);
+		return pwMonitoring;
 	}
 
 
 	@Override
 	public JobStatus setPowerThermalCapping(SetPowerThermalRequest request) throws Exception {
-
-		IPowerThermalAdapter adapter = new PowerThermalAdapterImpl();
 		WsmanCredentials credentials = new WsmanCredentials();
 		credentials.setAddress(request.getServerAddress());
 		credentials.setUserName(request.getUserName());
@@ -66,13 +61,13 @@ public class PowerThermalInfrastructureImpl implements IPowerThermalInfrastructu
 		JobStatus status = null;
 		String powerSettings = request.isEnableCapping() ? EnumDefinition.ENABLED.toString() : EnumDefinition.DISABLED.toString();
 
-		adapter.enablePowerCapping(credentials, powerSettings);
+		powerThermalAdapterImpl.enablePowerCapping(credentials, powerSettings);
 
 		if (request.getPowerCap() > 0) {
-			adapter.setPowerCapping(credentials, String.valueOf(request.getPowerCap()));
+			powerThermalAdapterImpl.setPowerCapping(credentials, String.valueOf(request.getPowerCap()));
 		}
 
-		status = adapter.createConfigJob(credentials);
+		status = powerThermalAdapterImpl.createConfigJob(credentials);
 		status.setServerAddress(request.getServerAddress());
 		status.setDescription("Configure Power and Thermal consumption job");
 
@@ -106,14 +101,17 @@ public class PowerThermalInfrastructureImpl implements IPowerThermalInfrastructu
 			logger.info("PowerMonitoring Service collection data ....\n ");
 			TimeUnit.SECONDS.sleep(5);
 		}
-
-				 
-		
 		 
-		 for (HwPowerMonitoring item : agg.getHwPowerMonitoring()) {
-			 currentReading+= ExtractValueUtil.findPowerValue(item.getCurrentReading());
-			 avgWarningThreshhold+=ExtractValueUtil.findPowerValue(item.getWarningThreshold());
-			 avgFailureThreshhold+=ExtractValueUtil.findPowerValue(item.getFailureThreshold());
+		 for (Object item : agg.getHwPowerMonitoring()) {
+			 String current = JsonPath.parse(new
+				 ObjectMapper().writeValueAsString(item)).read("$.SystemBoardPwrConsumption.CurrentReading");
+			 String warning = JsonPath.parse(new
+					 ObjectMapper().writeValueAsString(item)).read("$.SystemBoardPwrConsumption.UpperThresholdNonCritical");
+			 String failure = JsonPath.parse(new
+					 ObjectMapper().writeValueAsString(item)).read("$.SystemBoardPwrConsumption.UpperThresholdCritical");
+			 currentReading+= ExtractValueUtil.findPowerValue(current);
+			 avgWarningThreshhold+=ExtractValueUtil.findPowerValue(warning);
+			 avgFailureThreshhold+=ExtractValueUtil.findPowerValue(failure);
 		 }
 		 
 		 int listSize=agg.getHwPowerMonitoring().size(); 

@@ -6,7 +6,8 @@ package com.dell.isg.aps.powerthermal.common;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.dell.isg.aps.commons.model.server.inventory.HwPowerMonitoring;
+
+import com.dell.isg.smi.commons.model.server.inventory.HwPowerMonitoring;
 
 /**
  * @author rahman.muhammad
@@ -18,7 +19,7 @@ protected long currentReading;
 protected long currentAvgReading;
 protected long avgWarningThreshhold;
 protected long avgFailureThreshhold;
-protected List<HwPowerMonitoring> HwPowerMonitoring;
+protected List<Object> HwPowerMonitoring;
 
 public long getCurrentReading() {
 	return currentReading;
@@ -44,15 +45,15 @@ public long getAvgFailureThreshhold() {
 public void setAvgFailureThreshhold(long avgFailureThreshhold) {
 	this.avgFailureThreshhold = avgFailureThreshhold;
 }
-public List<HwPowerMonitoring> getHwPowerMonitoring() {
+public List<Object> getHwPowerMonitoring() {
 	
 	if(HwPowerMonitoring==null){
-		 HwPowerMonitoring=new ArrayList<HwPowerMonitoring>();
+		 HwPowerMonitoring=new ArrayList<Object>();
 	 }
 	
 	return HwPowerMonitoring;
 }
-public void setHwPowerMonitoring(List<HwPowerMonitoring> hwPowerMonitoring) {
+public void setHwPowerMonitoring(List<Object> hwPowerMonitoring) {
 	HwPowerMonitoring = hwPowerMonitoring;
 } 
 
